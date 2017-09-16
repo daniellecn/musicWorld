@@ -1,225 +1,92 @@
-import { topArtists } from './artist.service';
-import { Observable } from 'rxjs/Rx';
-import { ApolloExecutionResult } from 'apollo-client/core/types';
-import { ApolloQueryObservable } from 'apollo-angular/build/src';
-import { Injectable } from '@angular/core'
-
+import { ArtistService } from './artist.service';
+import { Observable, Subject } from 'rxjs/Rx';
+import { Injectable } from '@angular/core';
+import { serverAddress } from './configurartion';
+import { HttpClient } from '@angular/common/http';
 import { Song } from './../Modules/song';
-import { Apollo } from 'apollo-angular';
-import gql from 'graphql-tag';
 
-export const topSongs = gql`
-query topSongs{
-songQueries {
-    topSongs {
-        id
-           name
-        artist {
-          id
-          firstName
-          lastName
-        }
-        album
-        publisher
-        publicationYear
-        genere
-        views
-        words
-      }
-    }
-  }
-`;
-
-export const allSongs = gql`
-query allSongs{
-    songQueries {
-      allSongs {
-        id
-           name
-        artist {
-          id
-          firstName
-          lastName
-        }
-        album
-        publisher
-        publicationYear
-        genere
-        views
-        words
-      }
-    }
-  }
-`;
-
+interface SongResponse {
+    song: Song;
+}
 
 @Injectable()
 export class SongService {
-    constructor(private apollo: Apollo) { }
+    private allSongsAnnouncer = new Subject<Song[]>();
+    private topSongsAnnouncer = new Subject<Song[]>();
 
-    getSongs(): Observable<ApolloExecutionResult<{ songQueries: { allSongs: Song[] } }>> {
+    constructor(private http: HttpClient, private artistService: ArtistService) { }
 
-        return this.apollo.watchQuery({
-            query: allSongs
+    getSongs(): Observable<Song[]> {
+        this.http.get<{ songs: Song[] }>(`${serverAddress}/songs`)
+            .subscribe((data) => {
+                this.allSongsAnnouncer.next(data.songs);
+            });
+
+        return this.allSongsAnnouncer;
+    }
+
+    getTopSongs(): Observable<Song[]> {
+        this.http.get<{ topSongs: Song[] }>(`${serverAddress}/topSongs`)
+            .subscribe((data) => {
+                this.topSongsAnnouncer.next(data.topSongs);
+            });
+
+        return this.topSongsAnnouncer;
+    }
+
+    removeSong(id: string): Observable<Song> {
+        const songRemoved = new Subject<Song>();
+        this.http.delete<SongResponse>(`${serverAddress}/song/${id}`, {})
+            .subscribe(data => {
+                songRemoved.next(data.song);
+            });
+
+        return songRemoved;
+    }
+
+    createSong(song: Song): Observable<Song> {
+        const songCreated = new Subject<Song>();
+        this.http.post<SongResponse>(`${serverAddress}/song`, {
+            name: song.name,
+            artist: song.artist,
+            album: song.album,
+            publisher: song.publisher,
+            publicationYear: song.publicationYear,
+            genere: song.genere,
+            words: song.words
         })
+            .subscribe(data => {
+                songCreated.next(data.song);
+            });
+
+        return songCreated;
     }
 
-    getTopSongs(): Observable<ApolloExecutionResult<{ songQueries: { topSongs: Song[] } }>> {
-        return this.apollo.watchQuery({
-            query: topSongs
+    updateSong(song: Song): Observable<Song> {
+        const songUpdated = new Subject<Song>();
+        this.http.post<SongResponse>(`${serverAddress}/song/${song._id}`, {
+            name: song.name,
+            artist: song.artist._id,
+            album: song.album,
+            publisher: song.publisher,
+            publicationYear: song.publicationYear,
+            genere: song.genere,
+            words: song.words
         })
+            .subscribe(data => {
+                songUpdated.next(data.song);
+            });
+
+        return songUpdated;
     }
 
-    removeSong(id: string): Observable<ApolloExecutionResult<{ songMutations: { removeSong: Song } }>> {
-        const removeSong = gql`
-        mutation removeSong($songId:ID!){
-            songMutations {
-              removeSong(id: $songId) {
-                id
-              }
-            }
-          }
-        `;
+    songViewed(song: Song): Observable<Song> {
+        const songViewed = new Subject<Song>();
+        this.http.post<SongResponse>(`${serverAddress}/song/${song._id}/viewed`, {})
+            .subscribe(data => {
+                songViewed.next(data.song);
+            });
 
-        return this.apollo.mutate({
-            mutation: removeSong,
-            variables: {
-                songId: id
-            },
-            refetchQueries: [{
-                query: topSongs
-            }],
-            updateQueries: {
-                allSongs: (prev, { mutationResult }) => {
-                    if (!mutationResult.data) { return prev; }
-
-                    return Object.assign({}, prev, {
-                        songQueries: {
-                            allSongs: prev.songQueries.allSongs.filter((song: Song) => song.id !== mutationResult.data.songMutations.removeSong.id)
-                        },
-                    });
-                },
-            },
-        });
-    }
-
-    createSong(song: Song): Observable<ApolloExecutionResult<{ songMutations: { createSong: Song } }>> {
-        const input = Object.assign({}, song, {
-            artist: song.artist.id
-        });
-        const createSong = gql`
-        mutation createSong($input: SongInput) {
-            songMutations {
-              createSong(input: $input) {
-                id
-                name
-                artist {
-                  id
-                }
-                album
-                publisher
-                publicationYear
-                genere
-                views
-                words
-                
-              }
-            }
-          }
-        `;
-
-        return this.apollo.mutate({
-            mutation: createSong,
-            variables: {
-                input
-            },
-            updateQueries: {
-                allSongs: (prev, { mutationResult }) => {
-                    if (!mutationResult.data) { return prev; }
-
-                    return Object.assign({}, prev, {
-                        songQueries: {
-                            allSongs: [...prev.songQueries.allSongs, mutationResult.data.songMutations.createSong]
-                        },
-                    });
-                },
-            },
-        });
-    }
-
-    updateSong(song: Song): Observable<ApolloExecutionResult<{ songMutations: { updateSong: Song } }>> {
-        const input = Object.assign({}, song, {
-            artist: song.artist.id
-        });
-        delete input.id;
-        delete input['__typename'];
-
-        const updateSong = gql`
-        mutation updateSong($songId:ID!, $input: SongInput) {
-            songMutations {
-              updateSong(id: $songId,input: $input) {
-                id
-                name
-                artist {
-                  id
-                }
-                album
-                publisher
-                publicationYear
-                genere
-                views
-                words
-                
-              }
-            }
-          }
-        `;
-
-        return this.apollo.mutate({
-            mutation: updateSong,
-            variables: {
-                songId: song.id,
-                input
-            },
-            refetchQueries: [{
-                query: topSongs
-            }, {
-                query: topArtists
-            }]
-        });
-    }
-
-    songViewed(song: Song): Observable<ApolloExecutionResult<{ songMutations: { songViewed: Song } }>> {
-        const songViewed = gql`
-        mutation songViewed($songId:ID!) {
-            songMutations {
-              songViewed(id: $songId){
-                id
-                name
-                artist {
-                  id
-                }
-                album
-                publisher
-                publicationYear
-                genere
-                views
-                words
-              }
-            }
-          }
-        `;
-
-        return this.apollo.mutate({
-            mutation: songViewed,
-            variables: {
-                songId: song.id,
-            },
-            refetchQueries: [{
-                query: topSongs
-            }, {
-                query: topArtists
-            }]
-        });
+        return songViewed;
     }
 }

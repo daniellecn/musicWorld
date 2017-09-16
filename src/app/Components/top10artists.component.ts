@@ -1,18 +1,15 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-
+import { Component, OnInit } from '@angular/core';
 import * as d3 from 'd3-selection';
-import * as d3Scale from "d3-scale";
-import * as d3Shape from "d3-shape";
-
-
+import * as d3Scale from 'd3-scale';
+import * as d3Shape from 'd3-shape';
 import { Artist } from './../Modules/artist';
-import { ArtistService } from './../Services/artist.service'
+import { ArtistService } from './../Services/artist.service';
+import { SongService } from '../Services/song.service';
 
 @Component({
     selector: 'top10artists',
-    templateUrl: './../Views/top10artists.component.html'
-    //   styleUrls: ['./CSS/login.component.css'],
+    templateUrl: './../Views/top10artists.component.html',
+    providers: [SongService]
 })
 export class Top10ArtistsComponent implements OnInit {
 
@@ -58,8 +55,8 @@ export class Top10ArtistsComponent implements OnInit {
 
     getArtist(): void {
         this.artistService.getTopArtists()
-            .subscribe(({ data }) => {
-                this.artists = data.artistQueries.topArtists;
+            .subscribe((topArtists) => {
+                this.artists = topArtists;
                 this.drawPie();
             })
     }
@@ -70,7 +67,7 @@ export class Top10ArtistsComponent implements OnInit {
             .enter().append("g")
             .attr("class", "arc");
         g.append("path").attr("d", this.arc)
-            .style("fill", (d: { data: Artist }) => this.color(d.data.id));
+            .style("fill", (d: { data: Artist }) => this.color(d.data._id));
         g.append("text").attr("transform", (d: any) => "translate(" + this.labelArc.centroid(d) + ")")
             .attr("dy", ".35em")
             .text((d: { data: Artist }) => {

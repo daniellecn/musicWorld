@@ -1,177 +1,92 @@
-import { allSongs, topSongs } from './song.service';
-import { Observable } from 'rxjs/Rx';
-import { ApolloExecutionResult } from 'apollo-client/core/types';
-import { ApolloQueryObservable } from 'apollo-angular/build/src';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, Subject } from 'rxjs/Rx';
 import { Injectable } from '@angular/core';
-
+import { serverAddress } from './configurartion';
 import { Artist } from './../Modules/artist';
-import { Apollo } from 'apollo-angular';
-import gql from 'graphql-tag';
 
-export const topArtists = gql`
-query topArtists{
-    artistQueries {
-      topArtists {
-        id
-        firstName
-        lastName
-        country
-        long
-        lat
-        views
-      }
-    }
-  }
-`;
+interface ArtistsResponse {
+    artists: Artist[];
+}
 
-export const searchArtists = gql`
-query searchArtists($firstName:String, $lastName:String, $country:String) {
-    artistQueries {
-      search(firstName:$firstName, lastName:$lastName, country:$country) {
-        id
-        firstName
-        lastName
-        country
-        long
-        lat
-        views
-      }
-    }
-  }
-`;
-
-let searchVariables: any = {};
+interface ArtistResponse {
+    artist: Artist;
+}
 
 @Injectable()
 export class ArtistService {
-    constructor(private apollo: Apollo) { }
+    private searchArtistsAnnouncer = new Subject<Artist[]>();
+    private topArtistAnnouncer = new Subject<Artist[]>();
+    private allArtistAnnouncer = new Subject<Artist[]>();
+    constructor(private http: HttpClient) { }
 
-    searchArtists(firstName: string, lastName: string, country: string): Observable<ApolloExecutionResult<{ artistQueries: { search: Artist[] } }>> {
-        searchVariables = {
-            firstName,
-            lastName,
-            country
-        };
-        return this.apollo.watchQuery({
-            fetchPolicy: "network-only",
-            query: searchArtists,
-            variables: {
-                firstName,
-                lastName,
-                country
-            }
-        });
-    }
-
-    getTopArtists(): Observable<ApolloExecutionResult<{ artistQueries: { topArtists: Artist[] } }>> {
-        return this.apollo.watchQuery({
-            query: topArtists
+    searchArtists(firstName: string, lastName: string, country: string): Observable<Artist[]> {
+        let params = new HttpParams();
+        if (firstName) {
+            params = params.append('firstName', firstName);
+        }
+        if (lastName) {
+            params = params.append('lastName', lastName);
+        }
+        if (country) {
+            params = params.append('country', country);
+        }
+        this.http.get<ArtistsResponse>(`${serverAddress}/artists/search`, {
+            params,
         })
+            .subscribe(data => {
+                this.searchArtistsAnnouncer.next(data.artists);
+            });
+
+        return this.searchArtistsAnnouncer;
     }
 
-    getAllArtists(): Observable<ApolloExecutionResult<{ artistQueries: { allArtists: Artist[] } }>> {
-        const allArtists = gql`
-        query allArtists{
-        artistQueries {
-            allArtists {
-                id
-                firstName
-                lastName
-                country
-                long
-                lat
-                views
-              }
-            }
-          }
-        `;
+    getTopArtists(): Observable<Artist[]> {
+        this.http.get<{ topArtists: Artist[] }>(`${serverAddress}/topArtists`)
+            .subscribe(data => {
+                this.topArtistAnnouncer.next(data.topArtists);
+            });
 
-        return this.apollo.watchQuery({
-            query: allArtists
+        return this.topArtistAnnouncer;
+    }
+
+    getAllArtists(): Observable<Artist[]> {
+        this.http.get<ArtistsResponse>(`${serverAddress}/artists`)
+            .subscribe(data => {
+                this.allArtistAnnouncer.next(data.artists);
+            });
+
+        return this.allArtistAnnouncer;
+    }
+
+    createArtist(artist: Artist): Observable<Artist> {
+        const artistCreated = new Subject<Artist>();
+        this.http.post<ArtistResponse>(`${serverAddress}/artist`, {
+            firstName: artist.firstName,
+            lastName: artist.lastName,
+            country: artist.country,
+            long: artist.long,
+            lat: artist.lat
         })
+            .subscribe(data => {
+                artistCreated.next(data.artist);
+            });
+
+        return artistCreated;
     }
 
-    createArtist(artist: Artist): Observable<ApolloExecutionResult<{ artistMutations: { createArtist: Artist } }>> {
-        const createArtist = gql`
-        mutation createArtist($input:ArtistInput!) {
-            artistMutations {
-              createArtist(input: $input) {
-                id
-                firstName
-                lastName
-                country
-                long
-                lat
-              }
-            }
-          }
-        `;
+    updateArtist(artist: Artist): Observable<Artist> {
+        const artistUpdated = new Subject<Artist>();
+        this.http.post<ArtistResponse>(`${serverAddress}/artist/${artist._id}`, {
+            firstName: artist.firstName,
+            lastName: artist.lastName,
+            country: artist.country,
+            long: artist.long,
+            lat: artist.lat
+        })
+            .subscribe(data => {
+                artistUpdated.next(data.artist);
+            });
 
-        return this.apollo.mutate({
-            mutation: createArtist,
-            variables: {
-                input: artist
-            }
-        });
-    }
-
-    updateArtist(artist: Artist): Observable<ApolloExecutionResult<{ artistMutations: { createArtist: Artist } }>> {
-        const updateArtist = gql`
-        mutation updateArtist($id: ID!, $input:ArtistInput!) {
-            artistMutations {
-              updateArtist(id: $id, input: $input) {
-                id
-                firstName
-                lastName
-                country
-                long
-                lat
-              }
-            }
-          }
-        `;
-        let input = Object.assign({}, artist);
-        delete input.id;
-        delete input.views;
-        delete input['__typename'];
-
-        return this.apollo.mutate({
-            mutation: updateArtist,
-            variables: {
-                id: artist.id,
-                input
-            }
-        });
-    }
-    
-    removeArtist(artist: Artist): Observable<ApolloExecutionResult<{ artistMutations: { createArtist: Artist } }>> {
-        const removeArtist = gql`
-        mutation removeArtist($id: ID!) {
-            artistMutations {
-              removeArtist(id: $id) {
-                id
-                firstName
-                lastName
-                country
-                long
-                lat
-              }
-            }
-          }
-        `;
-
-        return this.apollo.mutate({
-            mutation: removeArtist,
-            variables: {
-                id: artist.id,
-            },
-            refetchQueries: [{
-                query: topArtists
-            }, {
-                query: topSongs
-            }, {
-                query: allSongs
-            }]
-        });
+        return artistUpdated;
     }
 }

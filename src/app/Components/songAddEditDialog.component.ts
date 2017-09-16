@@ -12,7 +12,8 @@ import { ArtistService } from './../Services/artist.service';
 @Component({
     selector: 'song-edit',
     templateUrl: './../Views/songAddEditDialog.component.html',
-    styleUrls: ['./../CSS/song.component.css']
+    styleUrls: ['./../CSS/song.component.css'],
+    providers: [ArtistService, SongService],
 })
 
 export class SongAddEditDialogComponent {
@@ -29,23 +30,23 @@ export class SongAddEditDialogComponent {
         this.title = this.isCreate ? 'ADD NEW SONG' : `EDIT ${this.selectedSong.name}`;
 
         artistService.getAllArtists()
-            .subscribe(({ data }) => {
-                this.artistsOptions = data.artistQueries.allArtists;
+            .subscribe((allArtists) => {
+                this.artistsOptions = allArtists;
             })
     }
     public save(): void {
         if (this.isCreate) {
             console.log('creating new song');
             this.songService.createSong(this.selectedSong)
-                .subscribe(({ data }) => {
-                    console.log('new song created - id ' + data.songMutations.createSong.id);
+                .subscribe((song) => {
+                    console.log('new song created - id ' + song._id);
                     this.dialogRef.close();
                 })
         } else {
             console.log('updating existing song');
             this.songService.updateSong(this.selectedSong)
-                .subscribe(({ data }) => {
-                    console.log('song updated - id ' + data.songMutations.updateSong.id);
+                .subscribe((song) => {
+                    console.log('song updated - id ' + song._id);
                     this.dialogRef.close();
                 })
         }

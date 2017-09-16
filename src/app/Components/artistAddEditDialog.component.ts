@@ -4,6 +4,7 @@ import { FormControl, Validators } from '@angular/forms';
 
 import { Artist } from './../Modules/artist';
 import { ArtistService } from './../Services/artist.service';
+import { SongService } from '../Services/song.service';
 import { MapsAPILoader } from '@agm/core';
 import { } from 'googlemaps';
 
@@ -15,7 +16,8 @@ import { } from 'googlemaps';
         #google-map-inEdit {
             height: 300px;
         }
-    `]
+    `],
+    providers: [SongService]
 })
 
 export class ArtistAddEditDialogComponent implements OnInit {
@@ -87,15 +89,16 @@ export class ArtistAddEditDialogComponent implements OnInit {
       }
 
     saveArtist() {
-        if (this.isCreate)
-            this.artistService.createArtist(this.selectedArtist).subscribe(({ data }) => {
+        if (this.isCreate) {
+            this.artistService.createArtist(this.selectedArtist).subscribe(() => {
                 console.log('created new artist');
                 this.dialogRef.close();
             })
-        else
-            this.artistService.updateArtist(this.selectedArtist).subscribe(({ data }) => {
+        } else {
+            this.artistService.updateArtist(this.selectedArtist).subscribe(() => {
                 console.log('created new artist');
                 this.dialogRef.close();
             })
+        }
     }
 }

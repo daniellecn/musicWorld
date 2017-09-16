@@ -15,8 +15,8 @@
                 <input type="text" class="form-control" [(ngModel)]="selectedSong.name" name="name">
             </div>
             <div class="form-group">
-                <md-select placeholder="Artist" [(ngModel)]="selectedSong.artist.id" name="artist">
-                    <md-option *ngFor="let artistOption of artistsOptions" [value]="artistOption.id" >
+                <md-select placeholder="Artist" [(ngModel)]="selectedSong.artist._id" name="artist">
+                    <md-option *ngFor="let artistOption of artistsOptions" [value]="artistOption._id" >
                         {{ artistOption.firstName }} {{ artistOption.lastName }}
                     </md-option>
                 </md-select>

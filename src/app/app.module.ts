@@ -1,15 +1,16 @@
+import { CredentialsInterceptor } from './Credentials.interceptor';
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
+import { HttpClientModule } from '@angular/common/http';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MaterialModule } from '@angular/material';
-import { ApolloModule } from 'apollo-angular';
-import { createClient } from './apolloClient';
 import { AppRoutingModule } from './app-routing.module';
-import { MdDialog, MdDialogRef, MD_DIALOG_DATA } from '@angular/material';
+import { MdDialogRef, MD_DIALOG_DATA } from '@angular/material';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AgmCoreModule } from '@agm/core';
 
 import { UserService } from './Services/user.service'
@@ -26,7 +27,7 @@ import { SongDeleteDialogComponent } from './Components/songDeleteDialog.compone
 import { SongDetailDialogComponent } from './Components/songDetailDialog.component';
 import { Top10SongsComponent } from './Components/top10songs.component';
 
-import { ArtistService } from './Services/artist.service'
+import { ArtistService } from './Services/artist.service';
 import { ArtistComponent } from './Components/artist.component';
 // import { ArtistDetailDialogComponent } from './Components/artistDetailDialog.component';
 import { ArtistAddEditDialogComponent } from './Components/artistAddEditDialog.component';
@@ -56,12 +57,12 @@ import { Top10ArtistsComponent } from './Components/top10artists.component';
     BrowserModule,
     FormsModule,
     HttpModule,
+    HttpClientModule,
     AppRoutingModule,
     FlexLayoutModule,
     BrowserAnimationsModule,
     MaterialModule,
     ReactiveFormsModule,
-    ApolloModule.forRoot(createClient),
     AgmCoreModule.forRoot({
       apiKey: "AIzaSyAVvxD7pbVARxYHsfOVXbNAZyXh4eXu_0o",
       libraries: ["places"]
@@ -72,7 +73,12 @@ import { Top10ArtistsComponent } from './Components/top10artists.component';
     ArtistService,
     SongService,
     { provide: MD_DIALOG_DATA, useValue: {} },
-    { provide: MdDialogRef, useValue: {} }
+    { provide: MdDialogRef, useValue: {} },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: CredentialsInterceptor,
+      multi: true
+    }
   ],
   bootstrap: [AppComponent],
   entryComponents: [

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, Inject } from '@angular/core';
+import { ChangeDetectorRef, Component, Inject, Input, OnInit } from '@angular/core';
 import { ActivatedRoute, ParamMap } from '@angular/router';
 import { MdDialog, MdDialogRef, MD_DIALOG_DATA } from '@angular/material';
 import { FormControl, Validators } from '@angular/forms';
@@ -27,9 +27,9 @@ interface QueryResponse {
         input {
             min-width: 100px;
         }
-    `]
+    `],
+    providers: [ArtistService, SongService]
 })
-
 export class SongsComponent implements OnInit {
     songs: Array<Song>;
 
@@ -43,23 +43,25 @@ export class SongsComponent implements OnInit {
     constructor(private songsService: SongService,
         private userService: UserService,
         private router: ActivatedRoute,
+        private cd: ChangeDetectorRef,
         public dialog: MdDialog) {
         this.displayedSongs = new Array<Song>();
         this.songs = new Array<Song>();
         this.songSearch = new Song();
-        this.getSongs();
     }
 
     ngOnInit(): void {
-        this.userService.connectedUser().subscribe(({ data }) => {
-            this.user = data.userQueries.me;
+        this.getSongs();
+        this.userService.me().subscribe((user) => {
+            this.user = user;
         });
     }
 
     getSongs(): void {
         this.songsService.getSongs()
-            .subscribe(({ data }) => {
-                this.songs = data.songQueries.allSongs
+            .subscribe((songs) => {
+                console.log('songs.component - getSongs invoked');
+                this.songs = songs;
                 this.refilter();
             })
     }
@@ -117,6 +119,7 @@ export class SongsComponent implements OnInit {
 
         dialogRef.afterClosed().subscribe(result => {
             console.log('The dialog was closed');
+            this.getSongs();
             //   alert(result);
         });
     }
@@ -145,6 +148,7 @@ export class SongsComponent implements OnInit {
 
         dialogRef.afterClosed().subscribe(result => {
             console.log('The dialog was closed');
+            this.getSongs();
             //   alert(result);
         });
     }

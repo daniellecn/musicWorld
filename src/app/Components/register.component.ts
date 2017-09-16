@@ -18,8 +18,8 @@ export class RegisterComponent implements OnInit {
 
   register(user: User): void {
     this.userService.register(user)
-      .subscribe(({ data }) => {
-        console.log('got data', data);
+      .subscribe(() => {
+        console.log('got data');
         this.router.navigate(['']);
       }, (error) => {
         this.showRegError = true;

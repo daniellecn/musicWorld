@@ -3,12 +3,14 @@ import { MD_DIALOG_DATA } from '@angular/material';
 
 import { Song } from './../Modules/song';
 import { Artist } from './../Modules/artist';
-import { SongService } from './../Services/song.service'
+import { SongService } from './../Services/song.service';
+import { ArtistService } from '../Services/artist.service';
 
 @Component({
   selector: 'song-Dialog',
   templateUrl: './../Views/songDetailDialog.component.html',
   styleUrls: ['./../CSS/song.component.css'],
+  providers: [ArtistService]
 })
 export class SongDetailDialogComponent implements OnInit { 
     title: string;

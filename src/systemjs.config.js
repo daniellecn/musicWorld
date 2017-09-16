@@ -10,6 +10,7 @@
     // angular bundles
     '@angular/core': 'npm:@angular/core/bundles/core.umd.js',
     '@angular/common': 'npm:@angular/common/bundles/common.umd.js',
+    '@angular/common/http': 'npm:@angular/common/bundles/common-http.umd.js',
     '@angular/compiler': 'npm:@angular/compiler/bundles/compiler.umd.js',
     '@angular/platform-browser': 'npm:@angular/platform-browser/bundles/platform-browser.umd.js',
     '@angular/platform-browser-dynamic': 'npm:@angular/platform-browser-dynamic/bundles/platform-browser-dynamic.umd.js',
@@ -63,28 +64,13 @@
     // 'graphql-anywhere': 'npm:graphql-anywhere/lib/src/index.js',
     // 'rxjs': 'npm:rxjs',
     // #docregion systemjs-apollo-client-map,
-    'apollo-client': 'npm:apollo-client/apollo.umd.js',
-    'apollo-client/index': 'npm:apollo-client/apollo.umd.js',
-    'apollo-client-rxjs': 'npm:apollo-client-rxjs/apollo-rxjs.umd.js',
-    'apollo-client-rxjs/index': 'npm:apollo-client-rxjs/apollo-rxjs.umd.js',
-    'apollo-link-core': 'npm:apollo-link-core',
-    'apollo-angular': 'npm:apollo-angular/build/bundles/apollo.umd.js',
-    'zen-observable-ts': 'npm:zen-observable-ts/lib/zenObservable.js',
-    'whatwg-fetch': 'npm:whatwg-fetch',
-
-    'graphql-anywhere': 'npm:graphql-anywhere',
-
-    'graphql-tag': 'npm:graphql-tag',
+    'tslib': 'npm:tslib/tslib.js',
     'symbol-observable': 'npm:symbol-observable',
     'redux': 'npm:redux/dist/redux.min.js',
     // #enddocregion systemjs-apollo-client-map
 
     // #docregion systemjs-apollo-test-utils-map
-    'apollo-test-utils': 'npm:apollo-test-utils',
-
     // #docregion systemjs-graphql-server-map
-    'graphql': 'npm:graphql',
-    'graphql-tools': 'npm:graphql-tools',
     'deprecated-decorator': 'npm:deprecated-decorator',
     'node-uuid': 'npm:node-uuid',
     'uuid': 'npm:uuid',
@@ -122,13 +108,8 @@
         }
       }
     },
-    'whatwg-fetch': { main: './fetch.js', defaultExtension: 'js' },
     'redux': { format: 'cjs', defaultExtension: 'js' },
     'symbol-observable': { main: './index.js', defaultExtension: 'js' },
-    'graphql-anywhere': {
-      main: '/lib/src/index.js',
-      defaultExtension: 'js'
-    },
     'backo2': {
       main: '/index.js',
       defaultExtension: 'js',
@@ -197,28 +178,10 @@
       main: '/index.js',
       defaultExtension: 'js',
     },
-    'subscriptions-transport-ws': {
-      main: 'dist/client.js',
-      defaultExtension: 'js',
-    },
-    'apollo-link-core': {
-      main: '/lib/index.js',
-      defaultExtension: 'js',
-    },
     // #enddocregion systemjs-apollo-client-packages
 
     // #docregion systemjs-apollo-test-utils-packages
-    'apollo-test-utils': { main: '/dist/src/index.js', defaultExtension: 'js' },
-
     // #docregion systemjs-graphql-server-packages
-    'graphql-tools': {
-      main: '/dist/index.js',
-      defaultExtension: 'js'
-    },
-    'graphql-tag': {
-      main: './src/index.js',
-      defaultExtension: 'js',
-    },
     'deprecated-decorator': { main: '/bld/index.js', defaultExtension: 'js' },
     'node-uuid': { main: './uuid.js', defaultExtension: 'js' },
     'uuid': { main: './lib/rng-browser.js', defaultExtension: 'js' },
@@ -228,20 +191,6 @@
       defaultExtension: 'js'
     }
   };
-    var gqlPackageNames = [
-      'error',
-      'execution',
-      'language',
-      'type',
-      'utilities',
-      'validation',
-      'jsutils'
-  ];
-  gqlPackageNames.forEach(function(pkgName) {
-      map['graphql/'+pkgName] = 'node_modules/graphql/'+pkgName;
-      packages['graphql/'+pkgName] = { main: 'index.js', defaultExtension: 'js' };
-  });
-
   System.config({
     paths: {
       // paths serve as alias

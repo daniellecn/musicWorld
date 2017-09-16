@@ -1,19 +1,22 @@
-import { Component, Input, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { Component, OnInit } from '@angular/core';
 
 import * as d3 from 'd3-selection';
-import * as d3Scale from "d3-scale";
-import * as d3Shape from "d3-shape";
+import * as d3Scale from 'd3-scale';
+import * as d3Shape from 'd3-shape';
 
 import { Song } from './../Modules/song';
-import { SongService } from './../Services/song.service'
+import { SongService } from './../Services/song.service';
+import { ArtistService } from '../Services/artist.service';
+
 
 @Component({
     selector: 'top10songs',
-    templateUrl: './../Views/top10songs.component.html'
-    //   styleUrls: ['./CSS/login.component.css'],
+    templateUrl: './../Views/top10songs.component.html',
+    providers: [ArtistService]
 })
 export class Top10SongsComponent implements OnInit {
+    public songs: Array<Song>;
+
     private width: number;
     private height: number;
     private radius: number;
@@ -27,7 +30,6 @@ export class Top10SongsComponent implements OnInit {
     ngOnInit(): void {
         this.initSvg();
     }
-    songs: Array<Song>;
 
     constructor(private songService: SongService) {
         this.width = 500;
@@ -38,8 +40,8 @@ export class Top10SongsComponent implements OnInit {
     }
 
     getSongs(): void {
-        this.songService.getTopSongs().subscribe(({ data }) => {
-            this.songs = data.songQueries.topSongs;
+        this.songService.getTopSongs().subscribe((topSongs) => {
+            this.songs = topSongs;
             this.drawPie();
         });
     }
@@ -67,7 +69,7 @@ export class Top10SongsComponent implements OnInit {
             .enter().append("g")
             .attr("class", "arc");
         g.append("path").attr("d", this.arc)
-            .style("fill", (d: { data: Song }) => this.color(d.data.id));
+            .style("fill", (d: { data: Song }) => this.color(d.data._id));
         g.append("text").attr("transform", (d: any) => "translate(" + this.labelArc.centroid(d) + ")")
             .attr("dy", ".35em")
             .text((d: { data: Song }) => {

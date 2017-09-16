@@ -1,13 +1,15 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { MdDialog, MdDialogRef, MD_DIALOG_DATA } from '@angular/material';
+import { Component, Inject } from '@angular/core';
+import { MdDialogRef, MD_DIALOG_DATA } from '@angular/material';
 import { Song } from './../Modules/song';
+import { ArtistService } from '../Services/artist.service';
 import { SongService } from './../Services/song.service';
 import { MdSnackBar } from '@angular/material';
 
 @Component({
     selector: 'song-delete',
     templateUrl: './../Views/songDeleteDialog.component.html',
-    styleUrls: ['./../CSS/song.component.css']
+    styleUrls: ['./../CSS/song.component.css'],
+    providers: [ArtistService]
 
 })
 
@@ -20,9 +22,9 @@ export class SongDeleteDialogComponent {
             this.selectedSong = data.song;
         }
     onYesClick(song: Song): void {
-        this.songService.removeSong(song.id.toString())
-            .subscribe(({ data }) => {
-            this.snackBar.open(`${song.name} successfully deleted`, 'Created', {
+        this.songService.removeSong(song._id.toString())
+            .subscribe((songDel) => {
+            this.snackBar.open(`${songDel.name} successfully deleted`, 'Created', {
             duration: 2000
           });
       }, (error) => {

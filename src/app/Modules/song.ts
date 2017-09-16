@@ -1,7 +1,7 @@
 import { Artist } from './../Modules/artist';
 
 export class Song{
-  id: number;
+  _id: string;
   name: string;
   artist: Artist;
   album?: string;

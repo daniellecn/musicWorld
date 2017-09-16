@@ -1,148 +1,77 @@
-import { Observable } from 'rxjs/Rx';
-import { ApolloExecutionResult } from 'apollo-client/core/types';
-import { ApolloQueryObservable } from 'apollo-angular/build/src';
-import { Injectable } from '@angular/core'
-
+import { Observable, Subject } from 'rxjs/Rx';
+import { Injectable } from '@angular/core';
+import { serverAddress } from './configurartion';
 import { User } from './../Modules/user';
-import { Apollo } from 'apollo-angular';
-import gql from 'graphql-tag';
+import { HttpClient } from '@angular/common/http';
+
+interface UserResponse {
+    user: User;
+}
 
 @Injectable()
 export class UserService {
-    constructor(private apollo: Apollo) { }
+    private connectedUserAnnouncer = new Subject<User>();
+    constructor(private http: HttpClient) { }
 
-    login(userName: string, password: string): Observable<ApolloExecutionResult<{ userMutations: { loginUser: User } }>> {
-        const loginUser = gql`
-        mutation loginUser($userName: String!, $password:String!) {
-            userMutations {
-              loginUser(userName: $userName, password: $password) {
-                __typename 
-                id
-                userName
-                firstName
-                lastName
-                isAdmin
-              }
-            }
-          }
-        `
-
-        return this.apollo.mutate({
-            mutation: loginUser,
-            variables: {
-                userName: userName,
-                password: password
-            },
-            updateQueries: {
-                // update apollo store
-                connectedUser: (prev, { mutationResult }) => {
-                    if (!mutationResult.data) { return prev; }
-
-                    return Object.assign({}, prev, {
-                        userQueries: {
-                            me: mutationResult.data.userMutations.loginUser
-                        },
-                    });
-                },
-            },
-        });
-    }
-
-    register(user: User): Observable<ApolloExecutionResult<{ userMutations: { createUser: User } }>> {
-        const registerUser = gql`
-        mutation registerUser($userName: String!, $password:String!, $firstName: String!, $lastName: String!) {
-          userMutations {
-            createUser(userName: $userName, password:$password, firstName:$firstName, lastName:$lastName) {
-                __typename 
-              id
-              userName
-              firstName
-              lastName
-              isAdmin
-            }
-          }
-        }
-        `;
-
-        return this.apollo.mutate({
-            mutation: registerUser,
-            variables: user,
-            updateQueries: {
-                // update apollo store
-                connectedUser: (prev, { mutationResult }) => {
-                    if (!mutationResult.data) { return prev; }
-
-                    return Object.assign({}, prev, {
-                        userQueries: {
-                            me: mutationResult.data.userMutations.createUser
-                        },
-                    });
-                },
-            },
-        });
-    }
-
-    logout(): Observable<ApolloExecutionResult<{ userMutation: { disconnect: boolean } }>> {
-        const logoutUser = gql`
-        mutation logoutUser {
-          userMutations {
-            disconnect
-          }
-        }
-        `;
-
-        return this.apollo.mutate({
-            mutation: logoutUser,
-            updateQueries: {
-                // update apollo store
-                connectedUser: (prev, { mutationResult }) => {
-                    if (!mutationResult.data) { return prev; }
-
-                    return Object.assign({}, prev, {
-                        userQueries: {
-                            me: null
-                        },
-                    });
-                },
-            },
-        });
-    }
-
-    connectedUser(): Observable<ApolloExecutionResult<{ userQueries: { me: User } }>> {
-        const connectedUser = gql`
-        query connectedUser {
-          userQueries {
-            me {
-              __typename 
-              id
-              userName
-              firstName
-              lastName
-              isAdmin
-            }
-          }
-        }
-        `;
-
-        return this.apollo.watchQuery({
-            query: connectedUser
+    login(userName: string, password: string): Observable<User> {
+        this.http.post<UserResponse>(`${serverAddress}/login`, {
+            userName,
+            password
         })
+            .subscribe(data => {
+                this.connectedUserAnnouncer.next(data.user);
+            });
+
+        return this.connectedUserAnnouncer;
+    }
+
+    register(user: User): Observable<User> {
+        this.http.post<UserResponse>(`${serverAddress}/user`, {
+            userName: user.userName,
+            password: user.password,
+            firstName: user.firstName,
+            lastName: user.lastName
+        })
+            .subscribe(data => {
+                this.connectedUserAnnouncer.next(data.user);
+            });
+
+        return this.connectedUserAnnouncer;
+    }
+
+    logout(): Observable<User> {
+        this.http.post(`${serverAddress}/logout`, {})
+            .subscribe(data => {
+                this.connectedUserAnnouncer.next(undefined);
+            });
+
+        return this.connectedUserAnnouncer;
+    }
+
+    connectedUser(): Observable<User> {
+        this.http.get<UserResponse>(`${serverAddress}/me`)
+            .subscribe(data => {
+                this.connectedUserAnnouncer.next(data.user);
+            }, error => {
+                this.connectedUserAnnouncer.next(undefined);
+            });
+
+        return this.connectedUserAnnouncer;
+    }
+
+    me(): Observable<User> {
+        const me = new Subject<User>();
+        this.http.get<UserResponse>(`${serverAddress}/me`)
+            .subscribe(data => {
+                me.next(data.user);
+            }, error => {
+                me.next(undefined);
+            });
+
+        return me;
     }
 
     public subscribeToNewUsers(): Observable<{ userCreated: User }> {
-        const newUser = gql`
-        subscription newUser{
-            userCreated {
-              id
-              userName
-              firstName
-              lastName
-            }
-          }
-        `;
-
-        return this.apollo.subscribe({
-            query: newUser
-        })
+        return undefined;
     }
 }

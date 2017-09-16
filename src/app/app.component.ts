@@ -17,15 +17,20 @@ export class AppComponent implements OnInit {
 
   public ngOnInit(): void {
     this.userService.connectedUser()
-      .subscribe(({ data }) => {
-        this.user = data.userQueries.me;
+      .subscribe((user) => {
+        console.log(user);
+        if (user && !this.user) {
+          this.user = user;
+        } else if (!user && this.user) {
+          this.user = user;
+        }
       });
 
-    this.userService.subscribeToNewUsers()
-      .subscribe(({ userCreated }) => {
-          this.snackBar.open(`${userCreated.firstName} ${userCreated.lastName} joined our app YAYYY`, 'Created', {
-            duration: 2000
-          });
-      });
+    // this.userService.subscribeToNewUsers()
+    //   .subscribe(({ userCreated }) => {
+    //       this.snackBar.open(`${userCreated.firstName} ${userCreated.lastName} joined our app YAYYY`, 'Created', {
+    //         duration: 2000
+    //       });
+    //   });
   }
 }

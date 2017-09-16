@@ -21,7 +21,7 @@ export class LoginComponent implements OnInit {
 
   login(user: User): void {
     this.userService.login(user.userName, user.password)
-      .subscribe(({ data }) => {
+      .subscribe(() => {
         this.router.navigate(['']);
       }, (error) => {
         this.showLoginError = true;

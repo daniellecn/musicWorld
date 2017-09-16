@@ -4,8 +4,9 @@ import { MdDialog, MdDialogRef, MD_DIALOG_DATA } from '@angular/material';
 
 import { Artist } from './../Modules/artist';
 import { User } from './../Modules/user';
-import { ArtistService } from './../Services/artist.service'
-import { UserService } from './../Services/user.service'
+import { ArtistService } from './../Services/artist.service';
+import { SongService } from '../Services/song.service';
+import { UserService } from './../Services/user.service';
 import { ArtistDetailDialogComponent } from './../Components/artistDetailDialog.component';
 import { ArtistAddEditDialogComponent } from './../Components/artistAddEditDialog.component';
 import { ArtistDeleteDialogComponent } from './artistDeleteDialog.component';
@@ -30,7 +31,8 @@ import { ArtistDeleteDialogComponent } from './artistDeleteDialog.component';
             height: 500px;
         }
     `],
-    styleUrls: ['./../CSS/song.component.css']
+    styleUrls: ['./../CSS/song.component.css'],
+    providers: [SongService]
 })
 
 export class ArtistComponent implements OnInit {
@@ -70,8 +72,8 @@ export class ArtistComponent implements OnInit {
         this.artists = new Array<Artist>();
 
         this.searchArtist(this.artistSearch);
-        this.userService.connectedUser().subscribe(({ data }) => {
-            this.user = data.userQueries.me;
+        this.userService.me().subscribe((user) => {
+            this.user = user;
         });
     }
 
@@ -79,8 +81,8 @@ export class ArtistComponent implements OnInit {
         this.showTable = true;
 
         this.artistService.searchArtists(artistSearch.firstName, artistSearch.lastName, artistSearch.country)
-            .subscribe(({ data }) => {
-                this.artists = data.artistQueries.search;
+            .subscribe((artists) => {
+                this.artists = artists;
             });
     }
 
