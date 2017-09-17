@@ -50,6 +50,7 @@
     // '@angular/cdk/platform': 'npm:@angular/cdk/bundles/cdk-platform.umd.js',
     // '@angular/cdk/a11y': 'npm:@angular/cdk/bundles/cdk-a11y.umd.js',
 
+    'socket.io-client': 'npm:socket.io-client/dist/socket.io.js',    
     // other libraries
     // 'apollo-angular':     'npm:apollo-angular/build/bundles/apollo.umd.js',
     // 'apollo-client-rxjs': 'npm:apollo-client-rxjs/apollo-rxjs.umd.js',
@@ -62,7 +63,7 @@
     // 'symbol-observable': 'npm:symbol-observable/index.js',
     // 'graphql': 'npm:graphql',
     // 'graphql-anywhere': 'npm:graphql-anywhere/lib/src/index.js',
-    // 'rxjs': 'npm:rxjs',
+    'rxjs': 'npm:rxjs',
     // #docregion systemjs-apollo-client-map,
     'tslib': 'npm:tslib/tslib.js',
     'symbol-observable': 'npm:symbol-observable',
@@ -189,7 +190,9 @@
     'lodash': { main: './index.js', defaultExtension: 'js' },
     rxjs: {
       defaultExtension: 'js'
-    }
+    },
+    'socket.io-client': {defaultExtension: 'js'}
+    
   };
   System.config({
     paths: {
